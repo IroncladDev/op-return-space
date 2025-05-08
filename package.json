@@ -6,13 +6,24 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "lint": "bunx biome check src/**/*.{astro,css,ts}",
+    "format": "bunx biome format --write src/**/*.{astro,css,ts}",
     "astro": "astro"
   },
   "dependencies": {
     "@astrojs/vercel": "^8.1.4",
-    "astro": "^5.7.12"
+    "@prisma/client": "^5.9.1",
+    "@webtui/css": "^0.0.5",
+    "@webtui/plugin-nf": "^0.1.0",
+    "@webtui/theme-catppuccin": "^0.0.3",
+    "astro": "^5.7.12",
+    "prisma": "^5.9.1"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4"
-  }
+  },
+  "trustedDependencies": [
+    "@biomejs/biome",
+    "prisma"
+  ]
 }
