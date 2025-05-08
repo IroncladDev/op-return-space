@@ -9,6 +9,10 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/vercel": "^8.1.4",
     "astro": "^5.7.12"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4"
   }
 }
