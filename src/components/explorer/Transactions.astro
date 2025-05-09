@@ -246,6 +246,23 @@ const transactions = (
         if (jsEnabled) {
           const tempDiv = document.createElement('div');
           tempDiv.innerHTML = opReturn;
+
+          const scripts = tempDiv.querySelectorAll('script');
+          scripts.forEach(oldScript => {
+            const newScript = document.createElement('script');
+            // Copy attributes
+            for (const attr of oldScript.attributes) {
+              newScript.setAttribute(attr.name, attr.value);
+            }
+            // Copy code
+            newScript.textContent = oldScript.textContent;
+            // Append to the right place
+            document.body.appendChild(newScript);
+            // Optionally remove the old script from tempDiv
+            oldScript.parentNode?.removeChild(oldScript);
+          });
+
+          // Now append the rest of the content (without the scripts)
           opReturnContent.append(...tempDiv.childNodes);
         } else {
           opReturnContent.innerHTML = clean(opReturn);
