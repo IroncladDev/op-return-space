@@ -96,7 +96,7 @@ const transactions = (
 
 <script>
   import type { PopulatedTxnData } from '@/server/utils';
-import { constructTxnHtml } from '@/utils/html';
+  import { constructTxnHtml } from '@/utils/html';
   import { thenJson, throughSchema } from '@/utils/neverthrow';
   import { err, ok, Result, ResultAsync } from 'neverthrow';
   import { z } from 'zod';
@@ -155,8 +155,6 @@ import { constructTxnHtml } from '@/utils/html';
           return [];
         })
 
-      console.log(assignedTxns);
-
       for(const txn of assignedTxns) {
         const txnEl = document.createElement('rendered-transaction');
 
@@ -166,6 +164,12 @@ import { constructTxnHtml } from '@/utils/html';
         txnEl.innerHTML = constructTxnHtml(txn);
 
         transactionsContainer.appendChild(txnEl);
+      }
+
+      // remove first child of transactionsContainer if there are more than 50 children
+      const txnItems = transactionsContainer.querySelectorAll('rendered-transaction');
+      if(txnItems.length > 50) {
+        transactionsContainer.removeChild(txnItems[0]);
       }
     }
   };
