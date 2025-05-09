@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "bun prisma migrate deploy && astro build",
     "preview": "astro preview",
     "lint": "bunx biome check src/**/*.{astro,css,ts}",
     "format": "bunx biome format --write src/**/*.{astro,css,ts}",
