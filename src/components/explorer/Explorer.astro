@@ -3,6 +3,7 @@ import Header from './Header.astro';
 import Blocks from './Blocks.astro';
 import Options from './Options.astro';
 import Transactions from './Transactions.astro';
+import UploadOverlay from '../UploadOverlay.astro';
 ---
 
 <column>
@@ -11,8 +12,4 @@ import Transactions from './Transactions.astro';
   <Options />
   <Transactions server:defer />
 </column>
-
-
-<script>
-  
-</script>
+<UploadOverlay />

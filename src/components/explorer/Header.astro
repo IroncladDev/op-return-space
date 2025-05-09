@@ -16,3 +16,9 @@ import Headline from "../Headline.astro";
   padding: 0 1ch;
 }
 </style>
+
+<script>
+  document.querySelector('#upload-button')!.addEventListener('click', () => {
+    (document.querySelector('#upload-dialog') as HTMLDialogElement)!.showModal();
+  });
+</script>

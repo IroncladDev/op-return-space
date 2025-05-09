@@ -1,0 +1,116 @@
+
+<dialog id="upload-dialog">
+  <column box-="round" align-="center">
+    <column gap-="1">
+      <span>Upload arbitrary data to the mempool</span>
+      <column>
+        <textarea id="upload-data" placeholder="https://youtube.com/watch?v=dQw4w9WgXcQ"></textarea>
+        <row>
+          <label for="fileInput" is-="button" size-="small">Upload Base64 &#xf40a;</label>
+          <input type="file" id="fileInput" style="display:none;">
+        </row>
+      </column>
+      <button id="upload-submit">Send it</button>
+    </column>
+  </column>
+</dialog>
+
+<script>
+import { thenJson } from "@/utils/neverthrow";
+import { err, ok, ResultAsync } from "neverthrow";
+
+  const uploadButton = document.querySelector('#upload-submit') as HTMLButtonElement;
+const uploadDialog = document.querySelector('#upload-dialog') as HTMLDialogElement;
+  const uploadData = document.querySelector('#upload-data') as HTMLTextAreaElement;
+
+  const fileInput = document.querySelector('#fileInput') as HTMLInputElement;
+
+  // handle base64 upload
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      uploadData.value = reader.result as string;
+    };
+
+    if(!file) return;
+
+    reader.readAsDataURL(file);
+  });
+
+  uploadButton.addEventListener('click', async () => {
+    if(uploadData.value.length === 0) {
+      alert('Please enter some data to upload');
+      return;
+    }
+
+    const data = uploadData.value;
+    await ResultAsync.fromPromise(
+      fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data,
+        }),
+      }), 
+      () => new Error('Failed to upload data')
+    )
+  .andThen(thenJson)
+  .map(res => {
+      if(res.success) {
+        return ok(res.data);
+      } else {
+        return err(new Error(res.message));
+      }
+  }).match(() => {
+    alert('Data uploaded successfully');
+    uploadData.value = '';
+    uploadDialog.close()    
+  }, err => {
+      alert(err.message);
+    })
+  });
+</script>
+
+<style>
+  #upload-dialog {
+    background-color: var(--background0);
+    color: var(--foreground0);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% - 4ch);
+    height: calc(100% - 2lh);
+    border: none;
+
+    & > column {
+      position: absolute;
+      inset: 0;
+    }
+  }
+
+  #upload-dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  #upload-data {
+    background-color: var(--background1);
+    font-size: var(--font-size);
+    font-family: var(--font-family);
+    color: var(--foreground1);
+    border: none;
+    resize: vertical;
+    padding: 1lh 1ch;
+    field-sizing: content;
+    max-height: 10lh;
+    max-width: 64ch;
+
+    &::placeholder {
+      color: var(--foreground2);
+    }
+  }
+</style>
