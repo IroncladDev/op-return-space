@@ -27,7 +27,7 @@ export function getNextArbitraryDataEntries(): ResultAsync<
       orderBy: [
         {
           txnLinks: {
-            _count: 'desc',
+            _count: 'asc',
           },
         },
         {
