@@ -161,8 +161,8 @@ export function createFormattedOutputs(
   }
 
   return txn.vout.map((input, i) => {
-    const inAddress = txn.vin[i]?.prevout.scriptpubkey_address;
-    const outAddress = input.scriptpubkey_address;
+    const inAddress = txn.vin[i]?.prevout.scriptpubkey_address ?? '';
+    const outAddress = input.scriptpubkey_address ?? '';
 
     let symbol = mm;
 
