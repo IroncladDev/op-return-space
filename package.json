@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "bun prisma migrate deploy && astro build",
+    "build": "bun db-sync && astro build",
     "apply-migrations": "bun prisma migrate deploy",
     "db-sync": "bun apply-migrations && bun prisma generate",
     "preview": "astro preview",
