@@ -1,4 +1,4 @@
-import { apiErr, apiOk } from '@/server/utils';
+import { apiErr, apiOk, thenJson } from '@/server/utils';
 import type { ArbitraryData } from '@prisma/client';
 import { err, ok, Result, ResultAsync } from 'neverthrow';
 import { z } from 'zod';
@@ -9,10 +9,7 @@ const assignTxnSchema = z.object({
 });
 
 export async function POST({ request }: { request: Request }) {
-  const requestArgs = await ResultAsync.fromPromise(
-    request.json(),
-    () => new Error('Failed to parse request body'),
-  ).andThen((req) =>
+  const requestArgs = await thenJson(request).andThen((req) =>
     Result.fromThrowable(
       () => assignTxnSchema.parse(req),
       () => new Error('Invalid schema'),

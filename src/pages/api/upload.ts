@@ -1,4 +1,4 @@
-import { apiErr, apiOk } from '@/server/utils';
+import { apiErr, apiOk, thenJson } from '@/server/utils';
 import prisma from '@/server/prisma';
 import { Result, ResultAsync } from 'neverthrow';
 import { z } from 'zod';
@@ -8,10 +8,7 @@ const uploadSchema = z.object({
 });
 
 export async function POST({ request }: { request: Request }) {
-  return await ResultAsync.fromPromise(
-    request.json(),
-    () => new Error('Failed to parse request body'),
-  )
+  return await thenJson(request)
     .andThen((req) =>
       Result.fromThrowable(
         () => uploadSchema.parse(req),

@@ -1,0 +1,38 @@
+---
+type Props = {
+  id: number;
+  satsPerVByte: number;
+  transactionCount: number;
+  amountSats: number;
+};
+
+const { id, satsPerVByte, transactionCount, amountSats } = Astro.props;
+
+const formattedAmountBtc = (amountSats / 100000000).toFixed(3);
+---
+
+<column class="block" self-="!shrink">
+  <row align-="center">#{id}</row>
+  <row align-="center">{satsPerVByte} sats/vB</row>
+  <row align-="center">{formattedAmountBtc} BTC</row>
+  <row align-="center">{transactionCount} txns</row>
+</column>
+
+<style>
+  .block {
+    height: 4lh;
+    width: 10ch;
+    box-shadow: 0.5ch 0.5lh 0 var(--background1);
+
+    row { 
+      height: 1lh;
+      flex-grow: 1;
+      flex-basis: 0;
+      color: var(--background0);
+    }
+    row:nth-child(1) { background-color: var(--pink); }
+    row:nth-child(2) { background-color: var(--mauve); }
+    row:nth-child(3) { background-color: var(--lavender); }
+    row:nth-child(4) { background-color: var(--blue); }
+  }
+</style>
