@@ -1,15 +1,39 @@
-<column class="slide" self-="grow" align-="center">
+---
+interface Props {
+  slide: number;
+}
+
+const { slide } = Astro.props as Props;
+---
+<column class="slide" self-="grow" align-="center" id={`slide-${slide}`}>
   <slot />
 </column>
 
 <style>
   .slide {
     width: 100%;
+    height: 100%;
+    position: fixed;
+    background-color: var(--background0);
+    display: none;
   }
 
   @layer base {
-    :root {
+    .slide {
       --font-size: 24px;
     }
   }
 </style>
+
+<script define:vars={{ slide }}>
+const slideCounter = document.querySelector('#slide-counter');
+const style = document.createElement('style') 
+style.innerHTML = `html:has(#slide-counter[data-slide="${slide}"]) #slide-${slide} {
+    display: flex;
+}`
+document.head.appendChild(style)
+
+document.querySelector('#slide-' + slide).addEventListener('click', () => {
+  slideCounter.setAttribute('data-slide', slide + 1);
+})
+</script>
