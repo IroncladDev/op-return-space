@@ -1,15 +1,12 @@
 ---
 import Slide from '@/layouts/Slide.astro';
-import Headline from '@/components/Headline.astro';
-
 ---
 
 <Slide slide={1}>
-  <column gap-="1">
-    <Headline />
-    <p>What if the length limit of OP_RETURN was removed?</p>
-    <row align-="center">
-      <button box-="round">Start</button>
-    </row>
+  <column gap-="1" align-="center">
+    <span>This is Peter Todd</span>
+    <img src="/todd.jpeg" />
+    <span>He wants to remove the OP_RETURN limit</span>
+    <span style="color: var(--foreground2)">[Click to continue]</span>
   </column>
 </Slide>

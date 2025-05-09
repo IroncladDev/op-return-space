@@ -23,9 +23,23 @@
     flex-direction: column;
   }
 
-  @media(max-width: 720px) {
+  @media (max-width: 720px) {
     :root {
       --font-size: 16px;
     }
   }
+}
+
+.slide {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  background-color: var(--background0);
+  display: none;
+  text-align: center;
+}
+
+img {
+  max-width: 800px;
+  max-height: 80vh;
 }
