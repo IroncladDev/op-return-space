@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "bun prisma migrate deploy && astro build",
+    "apply-migrations": "bun prisma migrate deploy",
+    "db-sync": "bun apply-migrations && bun prisma generate",
     "preview": "astro preview",
     "lint": "bunx biome check src/**/*.{astro,css,ts}",
     "format": "bunx biome format --write src/**/*.{astro,css,ts}",
