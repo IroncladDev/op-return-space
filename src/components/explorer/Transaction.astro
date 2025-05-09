@@ -1,0 +1,30 @@
+---
+import type { TxnLinkWithData } from '@/server/utils';
+
+type Props = {
+  transaction: TxnLinkWithData;
+};
+
+const { transaction } = Astro.props as Props;
+---
+
+<rendered-transaction data-txn-id={transaction.txnId}>
+  <column class="transaction">
+    <row>id: {transaction.txnId}</row>
+  </column>
+  <column>
+    <p>{transaction.data.data}</p>
+  </column>
+</rendered-transaction>
+
+<style></style>
+
+<script>
+  class RenderedTransaction extends HTMLElement {
+    constructor() {
+      super();
+    }
+  }
+
+  customElements.define('rendered-transaction', RenderedTransaction);
+</script>

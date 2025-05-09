@@ -1,36 +1,17 @@
 ---
 import Header from './Header.astro';
-import Block from './Block.astro';
-import type { MempoolBlock } from '@/server/mempool';
-
-type Props = {
-  blocks: Array<MempoolBlock>;
-};
-
-const { blocks } = Astro.props as Props;
+import Blocks from './Blocks.astro';
+import Options from './Options.astro';
+import Transactions from './Transactions.astro';
 ---
 
 <column>
   <Header />
-  <row id="blocks" gap-="2">
-    {blocks.map((block) => (
-      <Block 
-        id={block.height} 
-        satsPerVByte={Math.round(block.extras.medianFee)}
-        transactionCount={block.tx_count}
-        amountSats={block.extras.totalFees}
-      />
-    ))}
-  </row>
+  <Blocks server:defer />
+  <Options />
+  <Transactions server:defer />
 </column>
 
-<style>
-#blocks {
-  width: 100vw;
-  overflow-x: scroll;
-  padding: 1lh 2ch;
-}
-</style>
 
 <script>
   

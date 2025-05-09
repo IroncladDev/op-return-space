@@ -1,11 +1,8 @@
 ---
 import Layout from '@/layouts/Layout.astro';
 import Explorer from '@/components/explorer/Explorer.astro';
-import { getMempoolBlocks, type MempoolBlock } from '@/server/mempool';
-
-const blocks: Array<MempoolBlock> = await getMempoolBlocks().unwrapOr([]);
 ---
 
 <Layout>
-  <Explorer blocks={blocks} />
+  <Explorer />
 </Layout>

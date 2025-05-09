@@ -1,7 +1,8 @@
-import { apiErr, apiOk, thenJson } from '@/server/utils';
+import { apiErr, apiOk } from '@/server/utils';
 import prisma from '@/server/prisma';
-import { Result, ResultAsync } from 'neverthrow';
+import { ResultAsync } from 'neverthrow';
 import { z } from 'zod';
+import { thenJson, throughSchema } from '@/utils/neverthrow';
 
 const uploadSchema = z.object({
   data: z.string(),
@@ -9,12 +10,7 @@ const uploadSchema = z.object({
 
 export async function POST({ request }: { request: Request }) {
   return await thenJson(request)
-    .andThen((req) =>
-      Result.fromThrowable(
-        () => uploadSchema.parse(req),
-        () => new Error('Invalid schema'),
-      )(),
-    )
+    .andThen(throughSchema(uploadSchema))
     .andThen((args) =>
       ResultAsync.fromPromise(
         prisma.arbitraryData.create({ data: args }),

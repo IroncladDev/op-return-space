@@ -23,7 +23,7 @@ model ArbitraryData {
 
 model TxnLink {
   id        Int      @id @unique @default(autoincrement())
-  txnId     String
+  txnId     String   @unique
   dataId    Int
   createdAt DateTime @default(now())
 

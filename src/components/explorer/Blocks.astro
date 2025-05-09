@@ -1,0 +1,26 @@
+---
+import { getMempoolBlocks } from '@/server/utils';
+import Block from './Block.astro';
+import type { MempoolBlock } from '@/utils/mempool';
+
+const blocks: Array<MempoolBlock> = await getMempoolBlocks().unwrapOr([]);
+---
+
+<row id="blocks" gap-="2">
+  {blocks.map((block) => (
+    <Block 
+      id={block.height} 
+      satsPerVByte={Math.round(block.extras.medianFee)}
+      transactionCount={block.tx_count}
+      amountSats={block.extras.totalFees}
+    />
+  ))}
+</row>
+
+<style>
+#blocks {
+  width: 100vw;
+  overflow-x: scroll;
+  padding: 1lh 2ch;
+}
+</style>

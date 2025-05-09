@@ -1,0 +1,172 @@
+---
+import {
+  getAndPopulateTransactions,
+  type PopulatedTxnData,
+} from '@/server/utils';
+
+// TODO: fix fields
+const transactions = (
+  await getAndPopulateTransactions().match(
+    (ok) => ok,
+    (err) => {
+      console.error(err);
+      return [];
+    },
+  )
+).filter((x) => x !== null) as Array<PopulatedTxnData>;
+
+console.log(transactions);
+---
+
+<column id="transactions">
+  {transactions.reverse().map((transaction) => (
+    <rendered-transaction data-txn-id={transaction.txnLink.txnId}>
+      <column>
+        <row>id: {transaction.txnLink.txnId}</row>
+      </column>
+      <column>
+        <p id="op-return">{transaction.txnLink.data.data}</p>
+      </column>
+    </rendered-transaction>
+  ))}
+</column>
+
+<style is:global>
+  #transactions {
+    flex-direction: column-reverse;
+    gap: 1ch;
+    padding: 1lh 2ch;
+  }
+
+  rendered-transaction {
+    background-color: var(--background1);
+    padding: 1lh 2ch;
+    flex-direction: column;
+    display: flex;
+  }
+</style>
+
+<script>
+  import type { PopulatedTxnData } from '@/server/utils';
+  import { thenJson, throughSchema } from '@/utils/neverthrow';
+  import { err, ok, Result, ResultAsync } from 'neverthrow';
+  import { z } from 'zod';
+
+  const transactionsContainer = document.getElementById('transactions') as HTMLElement;
+
+  const mempoolTxnIdsSchema = z.object({
+    "mempool-txids": z.object({
+      sequence: z.number(),
+      added: z.array(z.string()),
+      removed: z.array(z.string()),
+      mined: z.array(z.string()),
+      replaced: z.array(z.string()),
+    })
+  })
+
+  const ws = new WebSocket('wss://mempool.space/api/v1/ws');
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ "track-mempool-txids": true }));
+    console.log('opened');
+  };
+
+  ws.onmessage = async (event) => {
+    const data = Result.fromThrowable(() => JSON.parse(event.data), () => new Error('Invalid JSON'))()
+      .andThen(throughSchema(mempoolTxnIdsSchema)).unwrapOr(null)
+
+    if(!data) return;
+
+    const txIds = data["mempool-txids"]
+
+    if(txIds.added.length > 0) {
+      console.log(txIds.added);
+      // TODO: populate with mempool txn data as well
+      const assignedTxns = await ResultAsync.fromPromise(
+        fetch('/api/assign-txns', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            txIds: txIds.added,
+          }),
+        }), 
+        () => new Error('Failed to fetch assigned txns')
+      )
+      .andThen(thenJson)
+      .andThen(json => {
+        if(json.success) {
+          return ok(json.data as Array<PopulatedTxnData>)
+        } else {
+          return err(new Error(json.message))
+        }
+        }).match(ok => ok, err => {
+          console.error(err);
+          return [];
+        })
+
+      console.log(assignedTxns);
+
+      for(const txn of assignedTxns) {
+        const txnEl = document.createElement('rendered-transaction');
+
+        txnEl.setAttribute('data-txn-id', txn.txnLink.txnId);
+        txnEl.innerHTML = `<column>
+          <row>id: ${txn.txnLink.txnId}</row>
+        </column>
+        <column>
+          <p id="op-return">${txn.txnLink.data.data}</p>
+        </column>`;
+
+        transactionsContainer.appendChild(txnEl);
+      }
+    }
+  };
+
+  ws.onerror = (error) => {
+    console.error('WebSocket error:', error);
+  };
+
+  ws.onclose = (event) => {
+    console.log('WebSocket closed:', event.code, event.reason);
+  };
+</script>
+
+<script>
+  import { throughSchema } from "@/utils/neverthrow";
+  import { Result } from "neverthrow";
+  import { mempoolTxnWsSubscriptionSchema } from "@/utils/mempool";
+
+  class RenderedTransaction extends HTMLElement {
+    constructor() {
+      super();
+
+      const txid = this.getAttribute('data-txn-id');
+      // const ws = new WebSocket('wss://mempool.space/api/v1/ws');
+
+    //   ws.onopen = () => {
+    //     ws.send(JSON.stringify({ "track-tx": txid }));
+    //   }
+    //
+    //   ws.onmessage = async (event) => {
+    //     const data = Result.fromThrowable(() => JSON.parse(event.data), () => new Error('Invalid JSON'))()
+    //       .andThen(throughSchema(mempoolTxnWsSubscriptionSchema)).unwrapOr(null)
+    //
+    //     if(!data) return;
+    //
+    //     
+    //   };
+    //
+    //   ws.onerror = (error) => {
+    //     console.error('WebSocket error:', error);
+    //   };
+    //
+    //   ws.onclose = (event) => {
+    //     console.log('WebSocket closed:', event.code, event.reason);
+    //   };
+    }
+  }
+
+  customElements.define('rendered-transaction', RenderedTransaction);
+</script>
