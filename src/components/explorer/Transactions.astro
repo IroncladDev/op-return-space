@@ -3,6 +3,7 @@ import {
   getAndPopulateTransactions,
   type PopulatedTxnData,
 } from '@/server/utils';
+import { constructTxnHtml } from '@/utils/html';
 
 // TODO: fix fields
 const transactions = (
@@ -14,40 +15,76 @@ const transactions = (
     },
   )
 ).filter((x) => x !== null) as Array<PopulatedTxnData>;
-
-console.log(transactions);
 ---
 
-<column id="transactions">
+<column id="transactions" is-="typography-block">
   {transactions.reverse().map((transaction) => (
-    <rendered-transaction data-txn-id={transaction.txnLink.txnId}>
-      <column>
-        <row>id: {transaction.txnLink.txnId}</row>
-      </column>
-      <column>
-        <p id="op-return">{transaction.txnLink.data.data}</p>
-      </column>
-    </rendered-transaction>
+    <rendered-transaction
+      data-txn-id={transaction.txnLink.txnId}
+      data-op-return={transaction.txnLink.data.data}
+      box-="square contain:!top"
+      set:html={constructTxnHtml(transaction)}
+    />
   ))}
 </column>
 
 <style is:global>
   #transactions {
     flex-direction: column-reverse;
-    gap: 1ch;
+    gap: 1lh;
     padding: 1lh 2ch;
   }
 
-  rendered-transaction {
+  #txn-op-return {
     background-color: var(--background1);
-    padding: 1lh 2ch;
+    padding: 1lh 1ch;
+  }
+
+  details {
+    summary {
+      background-color: var(--background1);
+      padding: 0 1ch;
+      cursor: pointer;
+    }
+
+    &[open] summary, & summary:hover {
+      background-color: var(--background2);
+    }
+
+    column {
+      background-color: var(--background1);
+      padding: 1lh 1ch;
+    }
+  }  
+
+  rendered-transaction {
+    --box-border-color: var(--background2);
+    --box-border-width: 1px;
+    padding-left: 2ch;
+    padding-right: 2ch;
+    paddint-bottom: 1lh;
     flex-direction: column;
     display: flex;
+    gap: 1lh;
+
+    &::after {
+      z-index: -2;
+      content: "";
+      position: absolute;
+      top: calc(50% + 0.5lh);
+      left: calc(50% + 1ch);
+      translate: -50% -50%;
+      width: calc(100% - 1ch + 2px);
+      height: calc(100% - 1lh + 2px);
+      border: solid var(--box-border-width) var(--background1);
+      clip-path: polygon(0 100%, 100% 100%, 100% 0, calc(100% - 1ch) 0, calc(100% - 10.5ch) calc(100% - 1lh), 0 calc(100% - 0.5lh));
+    }
   }
 </style>
 
 <script>
   import type { PopulatedTxnData } from '@/server/utils';
+import { constructTxnHtml } from '@/utils/html';
   import { thenJson, throughSchema } from '@/utils/neverthrow';
   import { err, ok, Result, ResultAsync } from 'neverthrow';
   import { z } from 'zod';
@@ -112,12 +149,9 @@ console.log(transactions);
         const txnEl = document.createElement('rendered-transaction');
 
         txnEl.setAttribute('data-txn-id', txn.txnLink.txnId);
-        txnEl.innerHTML = `<column>
-          <row>id: ${txn.txnLink.txnId}</row>
-        </column>
-        <column>
-          <p id="op-return">${txn.txnLink.data.data}</p>
-        </column>`;
+        txnEl.setAttribute('box-', 'square contain:!top');
+        txnEl.setAttribute('data-op-return', txn.txnLink.data.data);
+        txnEl.innerHTML = constructTxnHtml(txn);
 
         transactionsContainer.appendChild(txnEl);
       }
@@ -134,37 +168,78 @@ console.log(transactions);
 </script>
 
 <script>
-  import { throughSchema } from "@/utils/neverthrow";
-  import { Result } from "neverthrow";
-  import { mempoolTxnWsSubscriptionSchema } from "@/utils/mempool";
+  import DOMPurify from 'isomorphic-dompurify';
+
+  const clean = (dirty: string) => DOMPurify.sanitize(dirty);
 
   class RenderedTransaction extends HTMLElement {
     constructor() {
       super();
+    }
 
+    connectedCallback() {
       const txid = this.getAttribute('data-txn-id');
-      // const ws = new WebSocket('wss://mempool.space/api/v1/ws');
 
-    //   ws.onopen = () => {
-    //     ws.send(JSON.stringify({ "track-tx": txid }));
-    //   }
-    //
-    //   ws.onmessage = async (event) => {
-    //     const data = Result.fromThrowable(() => JSON.parse(event.data), () => new Error('Invalid JSON'))()
-    //       .andThen(throughSchema(mempoolTxnWsSubscriptionSchema)).unwrapOr(null)
-    //
-    //     if(!data) return;
-    //
-    //     
-    //   };
-    //
-    //   ws.onerror = (error) => {
-    //     console.error('WebSocket error:', error);
-    //   };
-    //
-    //   ws.onclose = (event) => {
-    //     console.log('WebSocket closed:', event.code, event.reason);
-    //   };
+      console.log(txid);
+
+      this.querySelector('#copy-id')!.addEventListener('click', () => {
+        navigator.clipboard.writeText(txid ?? '');
+      });
+
+      this.updateContent();
+
+      const imgOption = document.querySelector('#option-images') as HTMLInputElement;
+      const vidOption = document.querySelector('#option-videos') as HTMLInputElement;
+      const htmlOption = document.querySelector('#option-html') as HTMLInputElement;
+      const jsOption = document.querySelector('#option-js') as HTMLInputElement;
+
+      imgOption.addEventListener('change', () => {
+        this.updateContent();
+      });
+      vidOption.addEventListener('change', () => {
+        this.updateContent();
+      });
+      htmlOption.addEventListener('change', () => {
+        this.updateContent();
+      });
+      jsOption.addEventListener('change', () => {
+        this.updateContent();
+      });
+    }
+
+    updateContent() {
+      const imgEnabled = (document.querySelector('#option-images') as HTMLInputElement).checked;
+      const vidEnabled = (document.querySelector('#option-videos') as HTMLInputElement).checked;
+      const htmlEnabled = (document.querySelector('#option-html') as HTMLInputElement).checked;
+      const jsEnabled = (document.querySelector('#option-js') as HTMLInputElement).checked;
+
+      const opReturn = this.getAttribute('data-op-return');
+      const opReturnContent = this.querySelector('#txn-op-return') as HTMLElement;
+
+      if(!opReturn) return;
+
+      const isVideo = opReturn.startsWith('data:video')
+      const isImage = opReturn.startsWith('data:image')
+
+      if(isVideo && vidEnabled) {
+        opReturnContent.innerHTML = `<video controls><source src="${opReturn}"></video>`;
+      } else if(isImage && imgEnabled) {
+        opReturnContent.innerHTML = `<img src="${opReturn}">`;
+      } else if(htmlEnabled) {
+        opReturnContent.innerHTML = '';
+        if (jsEnabled) {
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = opReturn;
+          opReturnContent.append(...tempDiv.childNodes);
+        } else {
+          opReturnContent.innerHTML = clean(opReturn);
+        }
+      } else {
+        opReturnContent.innerHTML = ``;
+        const pre = document.createElement('pre');
+        pre.innerText = opReturn;
+        opReturnContent.appendChild(pre);
+      }
     }
   }
 

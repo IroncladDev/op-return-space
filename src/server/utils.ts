@@ -77,6 +77,16 @@ export const populateTxnsWithData = (
         (e) => new Error(`Failed to upsert TxnLinks: ${e}`),
       ),
     )
+    .andTee(async () => {
+      // Delete old txnlinks to save on storage
+      await prisma.txnLink.deleteMany({
+        where: {
+          createdAt: {
+            lt: new Date(Date.now() - 3600000),
+          },
+        },
+      });
+    })
     .andThen((txnLinks) => {
       return ResultAsync.fromPromise(
         Promise.all(

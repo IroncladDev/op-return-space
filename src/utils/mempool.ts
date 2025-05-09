@@ -60,6 +60,35 @@ export const mempoolTxnWsSubscriptionSchema = z.object({
   }),
 });
 
+export const mempoolTxnVinSchema = z.object({
+  txid: z.string(),
+  vout: z.number(),
+  prevout: z.object({
+    scriptpubkey: z.string(),
+    scriptpubkey_asm: z.string(),
+    scriptpubkey_type: z.string(),
+    scriptpubkey_address: z.string(),
+    value: z.number(),
+  }),
+  scriptsig: z.string(),
+  scriptsig_asm: z.string(),
+  witness: z.array(z.string()),
+  is_coinbase: z.boolean(),
+  sequence: z.number(),
+});
+
+export type MempoolTxnVin = z.infer<typeof mempoolTxnVinSchema>;
+
+export const mempoolTxnVoutSchema = z.object({
+  scriptpubkey: z.string(),
+  scriptpubkey_asm: z.string(),
+  scriptpubkey_type: z.string(),
+  scriptpubkey_address: z.string(),
+  value: z.number(),
+});
+
+export type MempoolTxnVout = z.infer<typeof mempoolTxnVoutSchema>;
+
 export const mempoolApiTxnSchema = z
   .object({
     txid: z.string(),
@@ -68,6 +97,8 @@ export const mempoolApiTxnSchema = z
     size: z.number(),
     weight: z.number(),
     fee: z.number(),
+    vin: z.array(mempoolTxnVinSchema),
+    vout: z.array(mempoolTxnVoutSchema),
     status: z
       .object({
         confirmed: z.boolean(),
@@ -79,3 +110,82 @@ export const mempoolApiTxnSchema = z
   .passthrough();
 
 export type MempoolApiTxn = z.infer<typeof mempoolApiTxnSchema>;
+
+export function calculateTxAmounts(txn: MempoolApiTxn) {
+  const input = txn.vin.reduce((sum, input) => sum + input.prevout.value, 0);
+  const output = txn.vout.reduce((sum, output) => sum + output.value, 0);
+
+  return {
+    output,
+    input,
+    fee: input - output,
+  };
+}
+
+export function createFormattedOutputs(
+  txn: MempoolApiTxn,
+): Array<[string, string, string]> {
+  const startSymbol = '┳';
+  const [ml, mm, mr] = ['┫', '╋', '┣'];
+  const [el, em, er] = ['┛', '┻', '┗'];
+
+  if (txn.vin.length > txn.vout.length) {
+    return txn.vin.map((input, i) => {
+      const inAddress = input.prevout.scriptpubkey_address;
+      const outAddress = txn.vout[i]?.scriptpubkey_address;
+
+      let symbol = mm;
+
+      if (i === 0) {
+        symbol = startSymbol;
+      } else if (i === txn.vin.length - 1) {
+        symbol = em;
+
+        if (inAddress && !outAddress) {
+          symbol = el;
+        }
+      } else {
+        symbol = mm;
+
+        if (inAddress && !outAddress) {
+          symbol = ml;
+        }
+      }
+
+      if (txn.vout.length === 1 && txn.vin.length === 1) {
+        symbol = '-';
+      }
+
+      return [inAddress, symbol, outAddress];
+    });
+  }
+
+  return txn.vout.map((input, i) => {
+    const inAddress = txn.vin[i]?.prevout.scriptpubkey_address;
+    const outAddress = input.scriptpubkey_address;
+
+    let symbol = mm;
+
+    if (i === 0) {
+      symbol = startSymbol;
+    } else if (i === txn.vout.length - 1) {
+      symbol = em;
+
+      if (!inAddress && outAddress) {
+        symbol = er;
+      }
+    } else {
+      symbol = mm;
+
+      if (!inAddress && outAddress) {
+        symbol = mr;
+      }
+    }
+
+    if (txn.vout.length === 1 && txn.vin.length === 1) {
+      symbol = '-';
+    }
+
+    return [inAddress, symbol, outAddress];
+  });
+}

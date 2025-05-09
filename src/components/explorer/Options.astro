@@ -1,0 +1,39 @@
+<column id="options" box-="square contain:!top">
+  <row>
+    <span is-="badge" variant-="background0">Options</span>
+  </row>
+  <row id="options-container" gap-="1">
+    <label>
+      <input type="checkbox" id="option-images" />
+      <span>Enable images</span>
+    </label>
+    <label>
+      <input type="checkbox" id="option-videos" />
+      <span>Enable videos</span>
+    </label>
+    <label>
+      <input type="checkbox" id="option-html" />
+      <span>Arbitrary HTML</span>
+    </label>
+    <label>
+      <input type="checkbox" id="option-js" />
+      <span>Arbitrary Javascript</span>
+    </label>
+  </row>
+</column>
+
+<style>
+#options {
+  margin-left: 2ch;
+  margin-right: 2ch;
+  --box-border-color: var(--foreground2);
+}
+#options-container {
+  flex-wrap: wrap;
+  padding: 1lh 1ch;
+}
+</style>
+
+<script>
+
+</script>
