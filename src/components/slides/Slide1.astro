@@ -1,0 +1,31 @@
+---
+import Slide from '@/layouts/Slide.astro';
+---
+
+<Slide>
+  <column gap-="1">
+    <row gap-="1" align-="center">
+      <img src="/todd.jpeg" width="128" height="128" />
+      <column>
+        <strong>OP_RETURN</strong>
+        <span id="subtitle">.space</span>
+      </column>
+    </row>
+    <p>What if the length limit of OP_RETURN was removed?</p>
+    <row align-="center">
+      <button box-="round">Start</button>
+    </row>
+  </column>
+</Slide>
+
+<style>
+img {
+  height: 2lh;
+  width: 2lh;
+  border-radius: 4px;
+}
+
+#subtitle {
+  color: var(--mauve);
+}
+</style>
